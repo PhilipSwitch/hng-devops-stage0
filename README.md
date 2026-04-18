@@ -1,206 +1,134 @@
-# HNG DevOps Stage 0 - Linux Server Configuration & Nginx Deployment
+# DevOps Stage 1 - Personal API
 
-## 🚀 Project Overview
-
-This project demonstrates a production-ready Linux server configuration with Nginx web server, SSL/TLS encryption, and comprehensive security hardening. Built as part of the HNG Internship DevOps Track Stage 0 assessment.
-
-## 🔗 Live Deployment
-
-- **Primary Domain:** [https://mobolaji-babajide.xyz](https://mobolaji-babajide.xyz)
-- **API Endpoint:** [https://mobolaji-babajide.xyz/api](https://mobolaji-babajide.xyz/api)
-
-## 🛠️ Technical Stack
-
-| Component | Technology |
-|-----------|------------|
-| **Operating System** | Ubuntu 22.04 LTS (64-bit) |
-| **Web Server** | Nginx 1.18+ |
-| **SSL/TLS** | Let's Encrypt (Certbot) |
-| **Firewall** | UFW (Uncomplicated Firewall) |
-| **Cloud Provider** | DigitalOcean |
-| **DNS** | Namecheap |
-
-## 📋 Implementation Details
-
-### Server Configuration
-
-#### User Management
-- **Primary User:** `hngdevops`
-- **Privileges:** Sudo access with passwordless execution for specific commands
-- **Passwordless Sudo Scope:** `/usr/sbin/sshd`, `/usr/sbin/ufw` only
-- **Authentication:** SSH key-based (password authentication disabled)
-
-#### Security Hardening
-- ✅ Root SSH login disabled
-- ✅ Password-based SSH authentication disabled
-- ✅ Key-based authentication enforced
-- ✅ UFW firewall active with whitelist approach
-- ✅ Minimal attack surface (only 3 ports exposed)
-
-#### Network Configuration
-**Open Ports:**
-- `22` - SSH (Secure Shell)
-- `80` - HTTP (redirects to HTTPS)
-- `443` - HTTPS (Secure web traffic)
-
-**All other ports:** Blocked by default
-
-### Web Endpoints
-
-#### `GET /`
-**Description:** Serves static HTML page with HNG username prominently displayed
-
-**Response Type:** `text/html`
-
-**Status Code:** `200 OK`
-
-**Features:**
-- Clean, responsive design
-- Username clearly visible as text content
-- Professional styling
+A simple Flask API deployed on a VPS using Nginx reverse proxy and systemd process management.
 
 ---
 
-#### `GET /api`
-**Description:** Returns JSON object with internship metadata
+## 🌍 Live Deployment
 
-**Response Type:** `application/json`
+**Base URL:**  
+http://mobolaji-babajide.xyz
 
-**Status Code:** `200 OK`
+---
 
-**Response Body:**
+## 🚀 API Endpoints
 
+### ✅ GET /
+
+Response:
+```json
 {
-  "message": "HNGI14 Stage 0",
-  "track": "DevOps",
-  "username": "Mobolaji-Philip-Babajide"
+  "message": "API is running"
 }
+```
 
-**Headers:**
-- `Content-Type: application/json`
+### ✅ GET /health
 
-### SSL/TLS Implementation
+Response:
+```json
+{
+  "message": "healthy"
+}
+```
 
-- **Certificate Authority:** Let's Encrypt
-- **Certificate Type:** Domain Validated (DV)
-- **Encryption:** TLS 1.2/1.3
-- **HTTP to HTTPS Redirect:** 301 Permanent Redirect
-- **Auto-Renewal:** Enabled via systemd timer
-- **Renewal Frequency:** Checked twice daily
-- **Certificate Validity:** 90 days (auto-renews at 30 days)
+### ✅ GET /me
 
-## 🔍 Verification & Testing
+Response:
+```json
+{
+  "name": "Mobolaji Philip Babajide",
+  "email": "mobolaji0babajide@gmail.com",
+  "github": "https://github.com/philipswitch"
+}
+```
 
-### Manual Testing Commands
+All endpoints:
+- Return `Content-Type: application/json`
+- Return HTTP status `200`
+- Respond in under 500ms
 
-# Test HTTPS root endpoint
-curl https://mobolaji-babajide.xyz
+---
 
-# Test HTTPS API endpoint
-curl https://mobolaji-babajide.xyz/api
+## 💻 Local Setup
 
-# Verify HTTP to HTTPS redirect (should return 301)
-curl -I http://mobolaji-babajide.xyz
+Install dependencies:
 
-# Check JSON Content-Type header
-curl -I https://mobolaji-babajide.xyz/api | grep "application/json"
+```bash
+pip3 install -r requirements.txt
+```
 
-# Verify SSL certificate
-openssl s_client -connect mobolaji-babajide.xyz:443 -servername mobolaji-babajide.xyz < /dev/null
+Run the application:
 
-# Check firewall status
-sudo ufw status verbose
+```bash
+python3 app.py
+```
 
-# Verify user configuration
-id hngdevops
-sudo -l -U hngdevops
+App runs locally on:
 
+http://127.0.0.1:5000
 
-### Browser Testing
+---
 
-1. Visit `https://mobolaji-babajide.xyz` - Should display HTML page with padlock icon
-2. Visit `https://mobolaji-babajide.xyz/api` - Should display JSON response
-3. Visit `http://mobolaji-babajide.xyz` - Should auto-redirect to HTTPS
-4. Check certificate - Click padlock icon, verify Let's Encrypt issuer
+## 🛠 Deployment Stack
 
-## 📁 Key Server Files
+- Python 3
+- Flask
+- Gunicorn
+- Nginx (Reverse Proxy)
+- Systemd (Process Manager)
+- Ubuntu 22.04 LTS
+- DigitalOcean VPS
+- UFW Firewall (Ports 22, 80, 443 allowed)
 
-- `/etc/nginx/sites-available/default` - Nginx main configuration
-- `/etc/ssh/sshd_config` - SSH server configuration (hardened)
-- `/etc/letsencrypt/live/mobolaji-babajide.xyz/` - SSL certificates
-- `/var/www/html/index.html` - Custom HTML page
-- `/home/hngdevops/.ssh/authorized_keys` - Grading bot SSH key
+---
 
-## 🔐 Security Compliance Checklist
+## 🏗 Architecture
 
-- [x] Non-root user created with limited sudo privileges
-- [x] Passwordless sudo restricted to specific commands only
-- [x] Root SSH login disabled
-- [x] Password authentication disabled (SSH keys only)
-- [x] UFW firewall enabled and configured
-- [x] Only essential ports exposed (22, 80, 443)
-- [x] Valid SSL certificate from trusted CA
-- [x] HTTPS enforced with 301 redirects
-- [x] Proper file permissions on SSH keys and web files
-- [x] Nginx running as non-privileged user (www-data)
+- Flask API runs internally on port 5000
+- Gunicorn serves the application
+- Nginx proxies public traffic (port 80) → 127.0.0.1:5000
+- Systemd ensures the service runs persistently
+- Firewall restricts unnecessary ports
 
-## 🎯 Task Requirements Met
+---
 
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| Non-root user `hngdevops` | ✅ | With sudo privileges |
-| Passwordless sudo for specific commands | ✅ | `/usr/sbin/sshd`, `/usr/sbin/ufw` |
-| Root SSH login disabled | ✅ | `PermitRootLogin no` |
-| Password SSH auth disabled | ✅ | `PasswordAuthentication no` |
-| UFW active, ports 22/80/443 only | ✅ | All others denied |
-| Nginx installed and running | ✅ | Serving on port 80/443 |
-| `GET /` returns HTML with username | ✅ | Username visible as text |
-| `GET /api` returns correct JSON | ✅ | Exact format match |
-| JSON has `Content-Type: application/json` | ✅ | Header configured |
-| Username matches HNG registration | ✅ | `Mobolaji-Philip-Babajide` |
-| Valid Let's Encrypt SSL | ✅ | Not self-signed |
-| HTTP→HTTPS redirect is 301 | ✅ | Permanent redirect |
-| Grading bot SSH key added | ✅ | In `authorized_keys` |
+## 📦 requirements.txt
 
-## 📚 Learning Outcomes
+```
+Flask==3.0.0
+gunicorn==21.2.0
+```
 
-Through this project, I gained hands-on experience with:
+---
 
-- Linux system administration and user management
-- SSH configuration and security hardening
-- Firewall configuration and network security principles
-- Nginx web server installation and configuration
-- SSL/TLS certificate management with Let's Encrypt
-- DNS configuration and domain management
-- Server blocks and location directives in Nginx
-- HTTP/HTTPS protocol understanding
-- RESTful API endpoint configuration
-- Security best practices for production servers
+## 🚫 .gitignore
+
+```
+__pycache__/
+*.pyc
+venv/
+.env
+```
+
+---
+
+## 🔄 Push to GitHub
+
+```powershell
+git init
+git add .
+git commit -m "DevOps Stage 1 - Personal API"
+
+# After creating the repo on GitHub:
+git remote add origin https://github.com/philipswitch/hng-devops.git
+git branch -M main
+git push -u origin main
+```
+
+---
 
 ## 👤 Author
 
-**Name:** Mobolaji Philip Babajide  
-**HNG Username:** Mobolaji-Philip-Babajide  
-**Track:** DevOps  
-**Stage:** 0  
-
-## 🗓️ Project Timeline
-
-- **Start Date:** April 11, 2026
-- **Completion Date:** April 12, 2026
-- **Submission Deadline:** April 16, 2026
-
-## 🙏 Acknowledgments
-
-- HNG Internship Program
-- DigitalOcean for cloud infrastructure
-- Let's Encrypt for free SSL certificates
-- Nginx and Ubuntu communities
-
-## 📄 License
-
-This project is part of the HNG Internship assessment and is for educational purposes.
-
----
-
-**Built with dedication as part of the HNG Internship DevOps Track** 🚀
+Name: Mobolaji Philip Babajide  
+Track: DevOps  
+Stage: 1  
